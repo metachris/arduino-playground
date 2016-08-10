@@ -1,3 +1,5 @@
+#include "pitches.h"
+
 int LED1 = 0;
 int BTN1 = 1;
 //int BTN1_state_last = 1;     // previous state of the button
@@ -8,9 +10,22 @@ int BTN2 = 4;
 int LED3 = 6;
 int BTN3 = 7;
 
+int PIN_SOUND = 23;
+
 int btn_state_last = ~0;     // set all state to 1
 int btn_game_target = 0;
 int streak = 0;
+
+// Melody win
+int melodyWin[] = { NOTE_C4, NOTE_G3,NOTE_G3, NOTE_A3, NOTE_G3,0, NOTE_B3, NOTE_C4 };
+// note durations: 4 = quarter note, 8 = eighth note, etc.:
+int noteDurationsWin[] = { 4, 8, 8, 4,4,4,4,4 };
+
+// Melody loose
+int melodyLoose[] = { NOTE_C4, NOTE_B3, NOTE_E3 };
+// note durations: 4 = quarter note, 8 = eighth note, etc.:
+int noteDurationsLoose[] = { 8, 8, 2 };
+
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -33,6 +48,7 @@ void setup() {
     digitalWrite(BTN3, HIGH);       // turn on pullup resistors
 
     btn_state_last = readButtons();
+    playSoundLoose();
     startRound();
 }
 
@@ -45,8 +61,8 @@ int readButtons() {
     return btn_state;
 }
 
-void blinkNow(int pin) {
-    for (int i=0; i<3; i++) {
+void blinkNow(int pin, int times) {
+    for (int i=0; i<times; i++) {
         digitalWrite(pin, HIGH);
         delay(300);
         digitalWrite(pin, LOW);
@@ -84,38 +100,19 @@ void loop() {
 
         if (btn1_state == LOW) {
             Serial.println("btn1 pressed");
-            // blinkNow(LED1);
-            if (btn_game_target == 1) {
-                Serial.println("YEAH");
-            } else {
-                Serial.println(":(");
-            }
-            startRound();
+            answer(1);
         }
 
         if (btn2_state == LOW) {
             Serial.println("btn2 pressed");
-            // blinkNow(LED2);
-            if (btn_game_target == 2) {
-                Serial.println("YEAH");
-            } else {
-                Serial.println(":(");
-            }
-            startRound();
+            answer(2);
         }
 
         if (btn3_state == LOW) {
             Serial.println("btn3 pressed");
-            // blinkNow(LED3);
-            if (btn_game_target == 3) {
-                Serial.println("YEAH");
-            } else {
-                Serial.println(":(");
-            }
-            startRound();
+            answer(3);
         }
     }
-
 }
 
 void startRound() {
@@ -132,14 +129,59 @@ void startRound() {
     }
 
     ledsAllOff();
-    blinkNow(pin);
+    blinkNow(pin, 2);
     digitalWrite(pin, HIGH);
 }
 
 void answer(int btn) {
-
+    if (btn == btn_game_target) {
+        Serial.print("YEAH! Streak: ");
+        Serial.println(streak);
+        streak++;
+        playSoundWin();
+    } else {
+        Serial.println(":(");
+        streak = 0;
+        playSoundLoose();
+    }
+    startRound();
 }
 
-void answerWrong() {
 
+void playSoundWin() {
+  // iterate over the notes of the melody:
+  for (int thisNote = 0; thisNote < 8; thisNote++) {
+
+    // to calculate the note duration, take one second
+    // divided by the note type.
+    //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+    int noteDuration = 1000/noteDurationsWin[thisNote];
+    tone(PIN_SOUND, melodyWin[thisNote],noteDuration);
+
+    // to distinguish the notes, set a minimum time between them.
+    // the note's duration + 30% seems to work well:
+    int pauseBetweenNotes = noteDuration * 1.30;
+    delay(pauseBetweenNotes);
+    // stop the tone playing:
+    noTone(PIN_SOUND);
+  }
+}
+
+void playSoundLoose() {
+  // iterate over the notes of the melody:
+  for (int thisNote = 0; thisNote < 3; thisNote++) {
+
+    // to calculate the note duration, take one second
+    // divided by the note type.
+    //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+    int noteDuration = 1000/noteDurationsLoose[thisNote];
+    tone(PIN_SOUND, melodyLoose[thisNote], noteDuration);
+
+    // to distinguish the notes, set a minimum time between them.
+    // the note's duration + 30% seems to work well:
+    int pauseBetweenNotes = noteDuration * 1.30;
+    delay(pauseBetweenNotes);
+    // stop the tone playing:
+    noTone(PIN_SOUND);
+  }
 }
