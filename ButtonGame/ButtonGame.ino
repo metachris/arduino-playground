@@ -2,7 +2,6 @@
 
 int LED1 = 0;
 int BTN1 = 1;
-//int BTN1_state_last = 1;     // previous state of the button
 
 int LED2 = 3;
 int BTN2 = 4;
@@ -16,16 +15,20 @@ int btn_state_last = ~0;     // set all state to 1
 int btn_game_target = 0;
 int streak = 0;
 
-// Melody win
-int melodyWin[] = { NOTE_C4, NOTE_G3,NOTE_G3, NOTE_A3, NOTE_G3,0, NOTE_B3, NOTE_C4 };
+// Melodies
 // note durations: 4 = quarter note, 8 = eighth note, etc.:
-int noteDurationsWin[] = { 4, 8, 8, 4,4,4,4,4 };
 
-// Melody loose
+// win
+int melodyWin[] = { NOTE_C4, NOTE_G3,NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4 };
+int noteDurationsWin[] = { 4, 8, 8, 4, 4, 4, 4, 4 };
+
+// loose
 int melodyLoose[] = { NOTE_C4, NOTE_B3, NOTE_E3 };
-// note durations: 4 = quarter note, 8 = eighth note, etc.:
 int noteDurationsLoose[] = { 8, 8, 2 };
 
+// // start
+int melodyStart[] = { NOTE_E3, NOTE_C4 };
+int noteDurationsStart[] = { 8, 4 };
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -48,7 +51,7 @@ void setup() {
     digitalWrite(BTN3, HIGH);       // turn on pullup resistors
 
     btn_state_last = readButtons();
-    playSoundLoose();
+    playSoundStart();
     startRound();
 }
 
@@ -147,16 +150,15 @@ void answer(int btn) {
     startRound();
 }
 
-
-void playSoundWin() {
+void playSound(int melody[], int durations[], int length) {
   // iterate over the notes of the melody:
-  for (int thisNote = 0; thisNote < 8; thisNote++) {
+  for (int thisNote = 0; thisNote < length; thisNote++) {
 
     // to calculate the note duration, take one second
     // divided by the note type.
     //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-    int noteDuration = 1000/noteDurationsWin[thisNote];
-    tone(PIN_SOUND, melodyWin[thisNote],noteDuration);
+    int noteDuration = 1000/durations[thisNote];
+    tone(PIN_SOUND, melody[thisNote], noteDuration);
 
     // to distinguish the notes, set a minimum time between them.
     // the note's duration + 30% seems to work well:
@@ -167,21 +169,14 @@ void playSoundWin() {
   }
 }
 
+void playSoundWin() {
+    playSound(melodyWin, noteDurationsWin, 8);
+}
+
 void playSoundLoose() {
-  // iterate over the notes of the melody:
-  for (int thisNote = 0; thisNote < 3; thisNote++) {
+    playSound(melodyLoose, noteDurationsLoose, 3);
+}
 
-    // to calculate the note duration, take one second
-    // divided by the note type.
-    //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-    int noteDuration = 1000/noteDurationsLoose[thisNote];
-    tone(PIN_SOUND, melodyLoose[thisNote], noteDuration);
-
-    // to distinguish the notes, set a minimum time between them.
-    // the note's duration + 30% seems to work well:
-    int pauseBetweenNotes = noteDuration * 1.30;
-    delay(pauseBetweenNotes);
-    // stop the tone playing:
-    noTone(PIN_SOUND);
-  }
+void playSoundStart() {
+    playSound(melodyStart, noteDurationsStart, 2);
 }
