@@ -7,6 +7,7 @@ int BTN2 = 4;
 
 int LED3 = 6;
 int BTN3 = 7;
+
 int btn_state_last = ~0;     // set all state to 1
 
 // the setup function runs once when you press reset or power the board
@@ -19,14 +20,9 @@ void setup() {
     pinMode(LED3, OUTPUT);
 
     // BTN Input
-    pinMode(BTN1, INPUT);           // set pin to input
-    digitalWrite(BTN1, HIGH);       // turn on pullup resistors
-
-    pinMode(BTN2, INPUT);           // set pin to input
-    digitalWrite(BTN2, HIGH);       // turn on pullup resistors
-
-    pinMode(BTN3, INPUT);           // set pin to input
-    digitalWrite(BTN3, HIGH);       // turn on pullup resistors
+    pinMode(BTN1, INPUT_PULLUP);
+    pinMode(BTN2, INPUT_PULLUP);
+    pinMode(BTN3, INPUT_PULLUP);
 }
 
 
